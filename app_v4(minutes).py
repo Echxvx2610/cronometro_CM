@@ -25,7 +25,7 @@ layout = [
      sg.Push()],
     [sg.Text('00:00',text_color='red',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
     [sg.Button('Iniciar/Pausar', size=(15, 2), font=('Helvetica', 14), key='-START-')],
-    [sg.Button('Reiniciar', size=(15, 2), font=('Helvetica', 14), key='-RESET-')],
+    [sg.Button('Reiniciar', size=(15, 2), font=('Helvetica', 14), key='-RESET-',disabled=True)],
     [sg.VPush()]]
 
 # Crea la ventana de la aplicación
@@ -43,6 +43,7 @@ paused_time = 0
 elapsed_time = 0
 paused = True
 hora_actual = datetime.time(datetime.now()).strftime('%H:%M')
+
 # Función para formatear el tiempo en minutos y segundos
 def format_time(seconds):
     minutes = seconds // 60
@@ -64,6 +65,7 @@ while True:
             paused_time += time_.time() - start_time
             paused = True
             window['-START-'].Widget.configure(state='disabled')
+            window['-RESET-'].Widget.configure(state='active')
     elif event == '-RESET-':
         # Reinicia el cronómetro y muestra el tiempo transcurrido
         if not paused:
@@ -89,7 +91,7 @@ while True:
         df = pd.DataFrame(
             {'Ensamble':ensamble,
             'Hora_inicio':[str(t1)],
-            'Tiempo_de_cambio':[f'{format_time(elapsed_time)}'],
+            'Tiempo_de_cambio':[f'{format_time(elapsed_time)}:00'],
             'Fecha':[fecha_actual]
             })
         #guardado de datos en dataframe-csv
