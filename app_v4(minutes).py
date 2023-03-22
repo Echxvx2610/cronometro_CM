@@ -23,7 +23,7 @@ layout = [
                        enable_events=True,
                        expand_x=False),
      sg.Push()],
-    [sg.Text('00:00',text_color='red',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
+    [sg.Text('00',text_color='red',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
     [sg.Button('Iniciar', size=(15, 2), font=('Helvetica', 14), key='-START-')],
     [sg.Button('Reiniciar', size=(15, 2), font=('Helvetica', 14), key='-RESET-',disabled=True)],
     [sg.VPush()]]
@@ -62,6 +62,7 @@ while True:
             paused = False
             window['-TT-'].update(hora_actual)
             window['-START-'].update('Pausar')
+            sg.popup_no_wait('Cronómetro iniciado')
         else:
             paused_time += time_.time() - start_time
             paused = True
@@ -104,11 +105,11 @@ while True:
         #     print("No")
         
         if not os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
-            print("No existian pero se creo un csv con headers")
+            #print("No existian pero se creo un csv con headers")
             with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
                 df.to_csv(f,sep=',',header=['Ensamble','Hora_inicio','Tiempo_de_cambio','fecha'] ,index=False)
         elif os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
-            print("Ya existia un csv con headers")
+            #print("Ya existia un csv con headers")
             with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
                 df.to_csv(f,sep=',',header = False,index=False)
         

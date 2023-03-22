@@ -47,7 +47,7 @@ hora_actual = datetime.time(datetime.now()).strftime('%H:%M:%S')
 def format_time(seconds):
     minutes = seconds // 60
     seconds %= 60
-    return f'{minutes:02}:{seconds:02}'
+    return f'{minutes:02d}:{seconds:02d}'
 
 # Bucle principal de la aplicación
 while True:
@@ -60,6 +60,7 @@ while True:
             start_time = time_.time()
             paused = False
             window['-TT-'].update(hora_actual)
+            sg.popup_no_wait('Cronómetro iniciado')
         else:
             paused_time += time_.time() - start_time
             paused = True
