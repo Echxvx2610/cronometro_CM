@@ -85,7 +85,7 @@ while True:
         t1 = timedelta(hours=H_actual,minutes=M_actual)
         ensamble = sg.PopupGetText('Ingrese el ensamble',title='Cronómetro',no_titlebar=False,grab_anywhere=True)
         fecha_actual = datetime.now().strftime('%d-%m-%Y')
-        sg.popup(f'Tiempo de cambio: {format_time(elapsed_time)}'+' minutos', title='Cronómetro')
+        sg.popup(f'Tiempo de cambio: {format_time(elapsed_time)}'+' minuto(s)', title='Cronómetro')
         window['-START-'].Widget.configure(state='active')
         window['-TIMER-'].update("00:00")
         window['-TT-'].update("00:00")
