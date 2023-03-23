@@ -42,7 +42,7 @@ start_time = 0
 paused_time = 0
 elapsed_time = 0
 paused = True
-hora_actual = datetime.time(datetime.now()).strftime('%H:%M') #tiempo actual(hora y minuto)
+
 
 # Función para formatear el tiempo en minutos y segundos
 def format_time(seconds):
@@ -60,6 +60,7 @@ while True:
         if paused:
             start_time = time_.time()
             paused = False
+            hora_actual = datetime.time(datetime.now()).strftime('%H:%M') #tiempo actual(hora y minuto)
             window['-TT-'].update(hora_actual)
             window['-START-'].update('Pausar')
             sg.popup_no_wait('Cronómetro iniciado')
@@ -68,7 +69,39 @@ while True:
             paused = True
             window['-START-'].update('Iniciar')
             window['-START-'].Widget.configure(state='disabled')
+            ensamble = sg.PopupGetText('Ingrese el ensamble',title='Cronómetro',no_titlebar=False,grab_anywhere=True)
             window['-RESET-'].Widget.configure(state='active')
+            #modificar formato hora_actual para restar tl tiempo de cambio
+            modif_hora_actual = hora_actual.replace(':',',')
+            tiempo_time = list(modif_hora_actual.split(','))
+            H_actual = int(tiempo_time[0])
+            M_actual = int(tiempo_time[1])
+            t1 = timedelta(hours=H_actual,minutes=M_actual)
+            fecha_actual = datetime.now().strftime('%d-%m-%Y')
+            sg.popup(f'Tiempo de cambio: {format_time(elapsed_time)}'+' minuto(s)', title='Cronómetro')
+            #visualizacion de datos en dataframe(utilizado en desarrollo)
+            df = pd.DataFrame(
+            {'Ensamble':ensamble,
+            'Hora_inicio':[str(t1)],
+            'Tiempo_de_cambio':[f'{format_time(elapsed_time)}:00'],
+            'Fecha':[fecha_actual]
+            })
+            #condicion para crear csv con headers y guardar en el mismo directorio
+            # if set(['Ensamble','Hora_inicio','Tiempo_de_cambio','Fecha']).issubset(df.columns):
+            #     print("Yes")
+            # else:
+            #     print("No")
+        
+            if not os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
+                #print("No existian pero se creo un csv con headers")
+                with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
+                    df.to_csv(f,sep=',',header=['Ensamble','Hora_inicio','Tiempo_de_cambio','fecha'] ,index=False)
+            elif os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
+                #print("Ya existia un csv con headers")
+                with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
+                    df.to_csv(f,sep=',',header = False,index=False)
+        
+
     elif event == '-RESET-':
         # Reinicia el cronómetro y muestra el tiempo transcurrido
         if not paused:
@@ -78,40 +111,11 @@ while True:
         paused_time = 0
         paused = True
         start_time = 0
-        #modificar formato hora_actual para restar tl tiempo de cambio
-        modif_hora_actual = hora_actual.replace(':',',')
-        tiempo_time = list(modif_hora_actual.split(','))
-        H_actual = int(tiempo_time[0])
-        M_actual = int(tiempo_time[1])
-        t1 = timedelta(hours=H_actual,minutes=M_actual)
-        ensamble = sg.PopupGetText('Ingrese el ensamble',title='Cronómetro',no_titlebar=False,grab_anywhere=True)
-        fecha_actual = datetime.now().strftime('%d-%m-%Y')
-        sg.popup(f'Tiempo de cambio: {format_time(elapsed_time)}'+' minuto(s)', title='Cronómetro')
         window['-START-'].Widget.configure(state='active')
         window['-TIMER-'].update("00:00")
         window['-TT-'].update("00:00")
-        #visualizacion de datos en dataframe(utilizado en desarrollo)
-        df = pd.DataFrame(
-            {'Ensamble':ensamble,
-            'Hora_inicio':[str(t1)],
-            'Tiempo_de_cambio':[f'{format_time(elapsed_time)}:00'],
-            'Fecha':[fecha_actual]
-            })
+        window['-RESET-'].Widget.configure(state='disabled')
         
-        #condicion para crear csv con headers y guardar en el mismo directorio
-        # if set(['Ensamble','Hora_inicio','Tiempo_de_cambio','Fecha']).issubset(df.columns):
-        #     print("Yes")
-        # else:
-        #     print("No")
-        
-        if not os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
-            #print("No existian pero se creo un csv con headers")
-            with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
-                df.to_csv(f,sep=',',header=['Ensamble','Hora_inicio','Tiempo_de_cambio','fecha'] ,index=False)
-        elif os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
-            #print("Ya existia un csv con headers")
-            with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
-                df.to_csv(f,sep=',',header = False,index=False)
         
     # Actualiza el cronómetro si no está pausado
     if not paused:
