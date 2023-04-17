@@ -23,7 +23,7 @@ layout = [
                        enable_events=True,
                        expand_x=False),
      sg.Push()],
-    [sg.Text('00',text_color='red',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
+    [sg.Text('00',text_color='blue',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
     [sg.Button('Iniciar', size=(15, 2), font=('Helvetica', 14), key='-START-')],
     [sg.Button('Reiniciar', size=(15, 2), font=('Helvetica', 14), key='-RESET-',disabled=True)],
     [sg.VPush()]]
