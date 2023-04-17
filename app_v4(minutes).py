@@ -5,6 +5,7 @@ from pandas import DataFrame
 import PySimpleGUI as sg
 import time as time_
 from datetime import datetime,timedelta,time
+import shutil   
 
 
 #Definicion de tema(ingresa letras alazar para ver un tema aleaotorio,ejemplo: sg.theme())
@@ -23,7 +24,7 @@ layout = [
                        enable_events=True,
                        expand_x=False),
      sg.Push()],
-    [sg.Text('00',text_color='blue',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
+    [sg.Text('00',text_color='red',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
     [sg.Button('Iniciar', size=(15, 2), font=('Helvetica', 14), key='-START-')],
     [sg.Button('Reiniciar', size=(15, 2), font=('Helvetica', 14), key='-RESET-',disabled=True)],
     [sg.VPush()]]
@@ -100,7 +101,8 @@ while True:
                 #print("Ya existia un csv con headers")
                 with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
                     df.to_csv(f,sep=',',header = False,index=False)
-        
+                    
+            shutil.copy2(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',r'H:\Temporal\Echevarria\CaputuraDeTiempos')
 
     elif event == '-RESET-':
         # Reinicia el cronómetro y muestra el tiempo transcurrido
@@ -112,9 +114,10 @@ while True:
         paused = True
         start_time = 0
         window['-START-'].Widget.configure(state='active')
-        window['-TIMER-'].update("00:00")
+        window['-TIMER-'].update("00")
         window['-TT-'].update("00:00")
         window['-RESET-'].Widget.configure(state='disabled')
+        
         
         
     # Actualiza el cronómetro si no está pausado
