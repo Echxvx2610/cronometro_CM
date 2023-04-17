@@ -5,13 +5,14 @@ from pandas import DataFrame
 import PySimpleGUI as sg
 import time as time_
 from datetime import datetime,timedelta,time
+import shutil   
 
 
 #Definicion de tema(ingresa letras alazar para ver un tema aleaotorio,ejemplo: sg.theme())
 sg.theme('Black')
 
 # Define la interfaz gráfica de usuario
-layout = [
+layout_izq = [
     [sg.Image(r'C:\cronometro_CM\img\LOGO_NAVICO_1_90.png',expand_x=False,expand_y=False,enable_events=True,key='-LOGO-'),sg.Push()],
     [sg.VPush()],
     [sg.Push(),
@@ -23,19 +24,37 @@ layout = [
                        enable_events=True,
                        expand_x=False),
      sg.Push()],
-    [sg.Text('00',text_color='blue',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
+    [sg.Text('00',text_color='red',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
     [sg.Button('Iniciar', size=(15, 2), font=('Helvetica', 14), key='-START-')],
     [sg.Button('Reiniciar', size=(15, 2), font=('Helvetica', 14), key='-RESET-',disabled=True)],
     [sg.VPush()]]
 
+analisisTiempo = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','Hora_inicio','T_Cambio','fecha'])
+df_tiempo = pd.DataFrame(analisisTiempo).tail(5)
+
+layout_der = [
+    [sg.Text(df_tiempo,text_color='White',font=('Helvetica', 15),enable_events=True,key='-DATAT-',)],
+    [sg.Button("<",size=(5,1),key='-ARROW-'),sg.Button("Refresh", size=(10, 1), font=('Helvetica', 10), key='-REFRESH-')],
+]
+
+layout_full = [
+    [sg.Column(layout_izq,element_justification='center'),
+     sg.VSeparator(),
+     sg.Column(layout_der,element_justification='center')],
+]
+
 # Crea la ventana de la aplicación
-window = sg.Window('Cronómetro', layout,icon=r'C:\cronometro_CM\ico\favicon.ico',
+window = sg.Window('Cronómetro', layout_full,icon=r'C:\cronometro_CM\ico\favicon.ico',
                    element_justification='center',
                    no_titlebar=False,
                    grab_anywhere = True,
                    finalize = True,
-                   resizable=False,
+                   resizable=True,
                    size=(300,400))
+
+
+# window.set_min_size((300,400))
+# window.set_max_size((800,400))
 
 # Inicializa las variables del cronómetro
 start_time = 0
@@ -50,11 +69,22 @@ def format_time(seconds):
     seconds %= 60
     return f'{minutes:02}'#:{seconds:02}'
 
+def refresh():
+    analisisTiempo = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','Hora_inicio','T_Cambio','fecha'])
+    df_tiempo = pd.DataFrame(analisisTiempo).tail(5)
+    return df_tiempo
+
+def arrow():
+    window.set_min_size((300,400))
+    window.set_size((300,400))
+
+
 # Bucle principal de la aplicación
 while True:
     event, values = window.read(timeout=10)
     if event == sg.WINDOW_CLOSED:
         break
+    
     elif event == '-START-':
         # Inicia o pausa el cronómetro
         if paused:
@@ -82,9 +112,9 @@ while True:
             #visualizacion de datos en dataframe(utilizado en desarrollo)
             df = pd.DataFrame(
             {'Ensamble':ensamble,
-            'Hora_inicio':[str(t1)],
-            'Tiempo_de_cambio':[f'{format_time(elapsed_time)}:00'],
-            'Fecha':[fecha_actual]
+            'Hora_inicio\t':[str(t1)],
+            'T_Cambio':[f'{format_time(elapsed_time)}:00'],
+            'Fecha':f'{fecha_actual}'
             })
             #condicion para crear csv con headers y guardar en el mismo directorio
             # if set(['Ensamble','Hora_inicio','Tiempo_de_cambio','Fecha']).issubset(df.columns):
@@ -95,12 +125,13 @@ while True:
             if not os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
                 #print("No existian pero se creo un csv con headers")
                 with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
-                    df.to_csv(f,sep=',',header=['Ensamble','Hora_inicio','Tiempo_de_cambio','fecha'] ,index=False)
+                    df.to_csv(f,sep=',',header=['Ensamble','Hora_inicio','T_Cambio','fecha'] ,index=False)
             elif os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
                 #print("Ya existia un csv con headers")
                 with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
                     df.to_csv(f,sep=',',header = False,index=False)
-        
+                    
+            shutil.copy2(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',r'H:\Temporal\Echevarria\CaputuraDeTiempos')
 
     elif event == '-RESET-':
         # Reinicia el cronómetro y muestra el tiempo transcurrido
@@ -112,9 +143,10 @@ while True:
         paused = True
         start_time = 0
         window['-START-'].Widget.configure(state='active')
-        window['-TIMER-'].update("00:00")
+        window['-TIMER-'].update("00")
         window['-TT-'].update("00:00")
         window['-RESET-'].Widget.configure(state='disabled')
+        
         
         
     # Actualiza el cronómetro si no está pausado
@@ -122,5 +154,12 @@ while True:
         elapsed_time = round(paused_time + time_.time() - start_time)
         # Muestra el tiempo en la interfaz
         window['-TIMER-'].update(format_time(elapsed_time))
+        
+    if event == '-REFRESH-':
+        window['-DATAT-'].update(refresh())
+        
+    if event == '-ARROW-':
+        arrow()
+        
         
 window.close()        
