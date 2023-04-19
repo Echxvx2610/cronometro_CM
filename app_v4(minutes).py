@@ -27,15 +27,43 @@ layout_izq = [
     [sg.Text('00',text_color='red',font=('Helvetica', 48), justification='center', size=(10, 1), key='-TIMER-')],
     [sg.Button('Iniciar', size=(15, 2), font=('Helvetica', 14), key='-START-')],
     [sg.Button('Reiniciar', size=(15, 2), font=('Helvetica', 14), key='-RESET-',disabled=True)],
+    [sg.Button(">>>>", size=(21, 1), font=('Helvetica', 10), key='-SIZEMAX-')],
     [sg.VPush()]]
 
-analisisTiempo = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','Hora_inicio','T_Cambio','fecha'])
-df_tiempo = pd.DataFrame(analisisTiempo).tail(5)
+#Setup para tabla de csv(sg.Table)
+try:
+    analisisTiempo = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','H_Inicio','T_Cambio','Fecha'])
+    df_tiempo = pd.DataFrame(analisisTiempo).tail(5)
+    columns = list(df_tiempo.columns)
+    order_columns = [columns[0],"Secuencia",columns[1],columns[2],columns[3]]
+    data = df_tiempo.values #data empaquetada dentro de otra lista [[], [], [], [], []]
+    
+    #notas para el desarrollo
+    #print(df_tiempo,'\n')
+    #print("columnas:",columns,'\n')
+    #print("order_columns:",order_columns,'\n')
+    #values = []
+    #for i in data: #bucle for para desempacar una lista de lista en una sola lista []
+    #    values.extend(i)
+    #print("values:",data,'\n')
 
-layout_der = [
-    [sg.Text(df_tiempo,text_color='White',font=('Helvetica', 15),enable_events=True,key='-DATAT-',)],
-    [sg.Button("<",size=(5,1),key='-ARROW-'),sg.Button("Refresh", size=(10, 1), font=('Helvetica', 10), key='-REFRESH-')],
-]
+    #Acaba el setup para la tabla de CSV(sg.Table)
+
+
+    layout_der = [
+        [sg.Text("Tiempos de Cambios Recientes",font='Helvetica 20',expand_x=True),],          
+        [sg.Table(values=data,
+                headings=order_columns,
+                max_col_width=5,
+                auto_size_columns=False,
+                justification='center',
+                num_rows=5,
+                key='-TABLE-',
+                )],
+        [sg.Button("<<<<", size=(21, 1), font=('Helvetica', 10), key='-SIZEMIN-')]
+    ]
+except:
+    print("No se pudo leer el archivo")
 
 layout_full = [
     [sg.Column(layout_izq,element_justification='center'),
@@ -50,11 +78,8 @@ window = sg.Window('Cronómetro', layout_full,icon=r'C:\cronometro_CM\ico\favico
                    grab_anywhere = True,
                    finalize = True,
                    resizable=True,
-                   size=(300,400))
-
-
-# window.set_min_size((300,400))
-# window.set_max_size((800,400))
+                   size=(300,430))
+window.set_min_size((300,430))
 
 # Inicializa las variables del cronómetro
 start_time = 0
@@ -68,16 +93,6 @@ def format_time(seconds):
     minutes = seconds // 60
     seconds %= 60
     return f'{minutes:02}'#:{seconds:02}'
-
-def refresh():
-    analisisTiempo = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','Hora_inicio','T_Cambio','fecha'])
-    df_tiempo = pd.DataFrame(analisisTiempo).tail(5)
-    return df_tiempo
-
-def arrow():
-    window.set_min_size((300,400))
-    window.set_size((300,400))
-
 
 # Bucle principal de la aplicación
 while True:
@@ -112,10 +127,11 @@ while True:
             #visualizacion de datos en dataframe(utilizado en desarrollo)
             df = pd.DataFrame(
             {'Ensamble':ensamble,
-            'Hora_inicio\t':[str(t1)],
-            'T_Cambio':[f'{format_time(elapsed_time)}:00'],
+            'H_Inicio':[str(t1)],
+            'T_Cambio':[f'{format_time(elapsed_time)}:00'], 
             'Fecha':f'{fecha_actual}'
             })
+            print(df)
             #condicion para crear csv con headers y guardar en el mismo directorio
             # if set(['Ensamble','Hora_inicio','Tiempo_de_cambio','Fecha']).issubset(df.columns):
             #     print("Yes")
@@ -125,13 +141,13 @@ while True:
             if not os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
                 #print("No existian pero se creo un csv con headers")
                 with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
-                    df.to_csv(f,sep=',',header=['Ensamble','Hora_inicio','T_Cambio','fecha'] ,index=False)
+                    df.to_csv(f,sep=',',header=['Ensamble','H_Inicio','T_Cambio','Fecha'] ,index=False)
             elif os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
                 #print("Ya existia un csv con headers")
                 with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
                     df.to_csv(f,sep=',',header = False,index=False)
                     
-            shutil.copy2(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',r'H:\Temporal\Echevarria\CaputuraDeTiempos')
+            shutil.copy2(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',r'H:\Temporal\CapturaDeTiemposSMT\LINEA 5') #LINEA n (ruta cambia dependiendo la linea)
 
     elif event == '-RESET-':
         # Reinicia el cronómetro y muestra el tiempo transcurrido
@@ -146,20 +162,25 @@ while True:
         window['-TIMER-'].update("00")
         window['-TT-'].update("00:00")
         window['-RESET-'].Widget.configure(state='disabled')
-        
-        
-        
+        window['-TABLE-'].update(values=data)
+        data_actualizada = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','H_Inicio','T_Cambio','Fecha'])
+        df_actual = pd.DataFrame(data_actualizada).tail(5)
+        data_actual = df_actual.values
+        print(data_actual)
+        window['-TABLE-'].update(values=data_actual)
     # Actualiza el cronómetro si no está pausado
     if not paused:
         elapsed_time = round(paused_time + time_.time() - start_time)
         # Muestra el tiempo en la interfaz
         window['-TIMER-'].update(format_time(elapsed_time))
         
-    if event == '-REFRESH-':
-        window['-DATAT-'].update(refresh())
+    if event == '-SIZEMIN-':
+        #print("Ventana ajustada")
+        window.size = (300,430)
         
-    if event == '-ARROW-':
-        arrow()
+    if event == '-SIZEMAX-':
+        #print("Ventana ajustada")
+        window.size = (930,430)
         
         
 window.close()        
