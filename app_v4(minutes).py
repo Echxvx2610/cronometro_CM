@@ -51,7 +51,7 @@ try:
 
 
     layout_der = [
-        [sg.Text("Tiempos de Cambios Recientes",font='Helvetica 20',expand_x=True),],          
+        [sg.Text("Tiempos de Cambios Recientes",font='Helvetica 20'),],          
         [sg.Table(values=data,
                 headings=order_columns,
                 max_col_width=5,
@@ -122,7 +122,7 @@ while True:
             H_actual = int(tiempo_time[0])
             M_actual = int(tiempo_time[1])
             t1 = timedelta(hours=H_actual,minutes=M_actual)
-            fecha_actual = datetime.now().strftime('%d-%m-%Y')
+            fecha_actual = datetime.now().strftime('%d-%m-%Y')   
             sg.popup(f'Tiempo de cambio: {format_time(elapsed_time)}'+' minuto(s)', title='Cronómetro')
             #visualizacion de datos en dataframe(utilizado en desarrollo)
             df = pd.DataFrame(
