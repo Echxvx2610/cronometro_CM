@@ -5,7 +5,7 @@ from pandas import DataFrame
 import PySimpleGUI as sg
 import time as time_
 from datetime import datetime,timedelta,time
-import shutil   
+import shutil
 
 
 #Definicion de tema(ingresa letras alazar para ver un tema aleaotorio,ejemplo: sg.theme())
@@ -37,7 +37,7 @@ try:
     columns = list(df_tiempo.columns)
     order_columns = [columns[0],"Secuencia",columns[1],columns[2],columns[3]]
     data = df_tiempo.values #data empaquetada dentro de otra lista [[], [], [], [], []]
-    
+
     #notas para el desarrollo
     #print(df_tiempo,'\n')
     #print("columnas:",columns,'\n')
@@ -51,7 +51,7 @@ try:
 
 
     layout_der = [
-        [sg.Text("Tiempos de Cambios Recientes",font='Helvetica 20'),],          
+        [sg.Text("Tiempos de Cambios Recientes",font='Helvetica 20'),],
         [sg.Table(values=data,
                 headings=order_columns,
                 max_col_width=5,
@@ -99,7 +99,7 @@ while True:
     event, values = window.read(timeout=10)
     if event == sg.WINDOW_CLOSED:
         break
-    
+
     elif event == '-START-':
         # Inicia o pausa el cronómetro
         if paused:
@@ -122,13 +122,13 @@ while True:
             H_actual = int(tiempo_time[0])
             M_actual = int(tiempo_time[1])
             t1 = timedelta(hours=H_actual,minutes=M_actual)
-            fecha_actual = datetime.now().strftime('%d-%m-%Y')   
+            fecha_actual = datetime.now().strftime('%d-%m-%Y')
             sg.popup(f'Tiempo de cambio: {format_time(elapsed_time)}'+' minuto(s)', title='Cronómetro')
             #visualizacion de datos en dataframe(utilizado en desarrollo)
             df = pd.DataFrame(
             {'Ensamble':ensamble,
             'H_Inicio':[str(t1)],
-            'T_Cambio':[f'{format_time(elapsed_time)}:00'], 
+            'T_Cambio':[f'{format_time(elapsed_time)}:00'],
             'Fecha':f'{fecha_actual}'
             })
             print(df)
@@ -137,23 +137,23 @@ while True:
             #     print("Yes")
             # else:
             #     print("No")
-        
+
             if not os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
                 #print("No existian pero se creo un csv con headers")
-                with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
+                with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f:
                     df.to_csv(f,sep=',',header=['Ensamble','H_Inicio','T_Cambio','Fecha'] ,index=False)
             elif os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
                 #print("Ya existia un csv con headers")
-                with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f: 
+                with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f:
                     df.to_csv(f,sep=',',header = False,index=False)
-                    
-            shutil.copy2(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',r'H:\Temporal\CapturaDeTiemposSMT\LINEA 5') #LINEA n (ruta cambia dependiendo la linea)
+
+            shutil.copy2(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',r'H:\Temporal\CapturaDeTiemposSMT\LINEA_test.csv') #LINEA n (ruta cambia dependiendo la linea)
 
     elif event == '-RESET-':
         # Reinicia el cronómetro y muestra el tiempo transcurrido
         if not paused:
             paused_time += time_.time() - start_time
-            
+
         elapsed_time = round(paused_time)
         paused_time = 0
         paused = True
@@ -173,14 +173,13 @@ while True:
         elapsed_time = round(paused_time + time_.time() - start_time)
         # Muestra el tiempo en la interfaz
         window['-TIMER-'].update(format_time(elapsed_time))
-        
+
     if event == '-SIZEMIN-':
         #print("Ventana ajustada")
         window.size = (300,430)
-        
+
     if event == '-SIZEMAX-':
         #print("Ventana ajustada")
         window.size = (930,430)
-        
-        
-window.close()        
+
+window.close()
