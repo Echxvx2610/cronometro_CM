@@ -1,12 +1,14 @@
-import os
-import csv
-import pandas as pd
-from pandas import DataFrame
-import PySimpleGUI as sg
-import time as time_
-from datetime import datetime,timedelta,time
-import shutil
-
+import os #manipulacion del sistema
+import csv #lectura y edicion de CSV
+import pandas as pd #manejo de datos
+from pandas import DataFrame #manejo de datos(csv,tablas,etc)
+import PySimpleGUI as sg #Libreria GUI
+import time as time_ 
+from datetime import datetime,timedelta,time #manejo de fechas y tiempos(horas, minutos, segundos)
+import shutil  #copiar archivos
+import pop_up
+import threading
+from threading import Thread
 
 #Definicion de tema(ingresa letras alazar para ver un tema aleaotorio,ejemplo: sg.theme())
 sg.theme('Black')
@@ -32,10 +34,10 @@ layout_izq = [
 
 #Setup para tabla de csv(sg.Table)
 try:
-    analisisTiempo = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','H_Inicio','T_Cambio','Fecha'])
+    analisisTiempo = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','Secuencia','H_Inicio','T_Cambio','Fecha','Comentarios'])
     df_tiempo = pd.DataFrame(analisisTiempo).tail(5)
     columns = list(df_tiempo.columns)
-    order_columns = [columns[0],"Secuencia",columns[1],columns[2],columns[3]]
+    order_columns = [columns[0],columns[1],columns[2],columns[3],columns[4],columns[5]]
     data = df_tiempo.values #data empaquetada dentro de otra lista [[], [], [], [], []]
 
     #notas para el desarrollo
@@ -54,8 +56,8 @@ try:
         [sg.Text("Tiempos de Cambios Recientes",font='Helvetica 20'),],
         [sg.Table(values=data,
                 headings=order_columns,
-                max_col_width=5,
-                auto_size_columns=False,
+                max_col_width=8,
+                auto_size_columns=True,
                 justification='center',
                 num_rows=5,
                 key='-TABLE-',
@@ -63,7 +65,7 @@ try:
         [sg.Button("<<<<", size=(21, 1), font=('Helvetica', 10), key='-SIZEMIN-')]
     ]
 except:
-    print("No se pudo leer el archivo")
+    sg.popup('No se encontraron tiempos de cambios')
 
 layout_full = [
     [sg.Column(layout_izq,element_justification='center'),
@@ -115,6 +117,9 @@ while True:
             window['-START-'].update('Iniciar')
             window['-START-'].Widget.configure(state='disabled')
             ensamble = sg.PopupGetText('Ingrese el ensamble',title='Cronómetro',no_titlebar=False,grab_anywhere=True)
+            secuencia = sg.PopupGetText('Ingrese la secuencia (10 o 20)',title='Cronómetro',no_titlebar=False,grab_anywhere=True)
+            #comentario = sg.PopupGetText('Ingrese algun comentario',title='Cronómetro',no_titlebar=False,grab_anywhere=True)
+            comentario = pop_up.pop_up()
             window['-RESET-'].Widget.configure(state='active')
             #modificar formato hora_actual para restar tl tiempo de cambio
             modif_hora_actual = hora_actual.replace(':',',')
@@ -127,9 +132,11 @@ while True:
             #visualizacion de datos en dataframe(utilizado en desarrollo)
             df = pd.DataFrame(
             {'Ensamble':ensamble,
+             'Secuencia':secuencia,
             'H_Inicio':[str(t1)],
             'T_Cambio':[f'{format_time(elapsed_time)}:00'],
-            'Fecha':f'{fecha_actual}'
+            'Fecha':f'{fecha_actual}',
+            'Comentarios':comentario,
             })
             print(df)
             #condicion para crear csv con headers y guardar en el mismo directorio
@@ -141,13 +148,13 @@ while True:
             if not os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
                 #print("No existian pero se creo un csv con headers")
                 with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f:
-                    df.to_csv(f,sep=',',header=['Ensamble','H_Inicio','T_Cambio','Fecha'] ,index=False)
+                    df.to_csv(f,sep=',',header=['Ensamble','H_Inicio','T_Cambio','Fecha','Comentarios'] ,index=False)
             elif os.path.exists(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv'):
                 #print("Ya existia un csv con headers")
                 with open(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv','a+',newline="") as f:
                     df.to_csv(f,sep=',',header = False,index=False)
 
-            shutil.copy2(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',r'H:\Temporal\CapturaDeTiemposSMT\LINEA_test.csv') #LINEA n (ruta cambia dependiendo la linea)
+            #shutil.copy2(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',r'H:\Temporal\CapturaDeTiemposSMT\LINEA_test.csv') #LINEA n (ruta cambia dependiendo la linea)
 
     elif event == '-RESET-':
         # Reinicia el cronómetro y muestra el tiempo transcurrido
@@ -163,7 +170,7 @@ while True:
         window['-TT-'].update("00:00")
         window['-RESET-'].Widget.configure(state='disabled')
         window['-TABLE-'].update(values=data)
-        data_actualizada = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','H_Inicio','T_Cambio','Fecha'])
+        data_actualizada = pd.read_csv(r'C:\cronometro_CM\csv\Captura_de_tiempo.csv',usecols=['Ensamble','Secuencia','H_Inicio','T_Cambio','Fecha','Comentarios'])
         df_actual = pd.DataFrame(data_actualizada).tail(5)
         data_actual = df_actual.values
         print(data_actual)
@@ -180,6 +187,6 @@ while True:
 
     if event == '-SIZEMAX-':
         #print("Ventana ajustada")
-        window.size = (930,430)
+        window.size = (1200,430)
 
 window.close()
